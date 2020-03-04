@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost/cart
+      database: cart_batman
+      host: localhost
+      port: 27017
+  datasource:
+    driverClassName: MongoDB
