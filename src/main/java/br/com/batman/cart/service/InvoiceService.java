@@ -10,7 +10,6 @@ import java.util.List;
 @FeignClient(name = "invoiceService", url = "http://zup-hackathon-financial.zup.com.br")
 public interface InvoiceService {
 
-    @PostMapping(path = "/invoices", consumes = "application/json")
-    @ResponseBody
-    void createInvoice(@RequestBody Invoice invoice);
+    @RequestMapping(value = "/invoices", method = RequestMethod.POST)
+    void createInvoice(@RequestHeader("x-team-control") String teamControl, @RequestBody Invoice invoice);
 }

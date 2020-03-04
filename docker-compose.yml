@@ -6,9 +6,9 @@ services:
     ports:
       - 27017:27017
     command: --smallfiles
-  app:
-    image: batman/cart
-    ports:
-      - 8080:8080
-    links:
-      - mongodb
+#  app:
+#    image: batman/cart
+#    ports:
+#      - 8080:8080
+#    links:
+#      - mongodb

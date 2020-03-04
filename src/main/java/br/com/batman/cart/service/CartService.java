@@ -5,12 +5,15 @@ import br.com.batman.cart.model.request.CartCheckoutRequest;
 import br.com.batman.cart.model.request.CartItemRequest;
 import br.com.batman.cart.model.request.CartRequest;
 import br.com.batman.cart.repository.CartRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class CartService {
@@ -27,10 +30,13 @@ public class CartService {
     @Autowired
     InvoiceService invoiceService;
 
+    @Autowired
+    TimelineProducer producer;
+
     public Cart createCart(CartRequest cartRequest) {
 
         Cart cart = Cart.builder()
-                .id(new Random().nextLong())
+                .id(UUID.randomUUID().toString())
                 .customerId(cartRequest.getCustomerId())
                 .status(Status.PENDING)
                 .items(new ArrayList<CartItem>())
@@ -51,7 +57,7 @@ public class CartService {
         return repository.save(cart);
     }
 
-    public Cart addNewItem(Long id, CartItemRequest cartItemRequest) throws Exception {
+    public Cart addNewItem(String id, CartItemRequest cartItemRequest) throws Exception {
 
         Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
 
@@ -87,7 +93,7 @@ public class CartService {
     }
 
 
-    public Cart cancelCart(Long id) throws Exception {
+    public Cart cancelCart(String id) throws Exception {
         Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
 
         if (cart.getStatus() != Status.PENDING) {
@@ -98,18 +104,18 @@ public class CartService {
         return repository.save(cart);
     }
 
-    public Cart removeCartItem(Long id, Long itemId) throws Exception {
+    public Cart removeCartItem(String id, String itemId) throws Exception {
         Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
 
         if (cart.getStatus() != Status.PENDING) {
             throw new Exception("Status is not PENDING!");
         }
 
-        cart.getItems().removeIf(it -> it.getId().equals(itemId.toString()));
+        cart.getItems().removeIf(it -> it.getId().equals(itemId));
         return repository.save(cart);
     }
 
-    public Cart checkout(Long id, CartCheckoutRequest cartCheckoutRequest, String teamName) throws Exception {
+    public Cart checkout(String id, CartCheckoutRequest cartCheckoutRequest, String teamName) throws Exception {
         Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
 
         if (cart.getStatus() != Status.PENDING) {
@@ -158,7 +164,20 @@ public class CartService {
                 .scale(2)
                 .build());
 
-        invoiceService.createInvoice(invoice);
+        Timeline timeline = Timeline.builder()
+                .headers(TimelineHeader.builder().teamControl(cart.getTeamName()).build())
+                .payload(TimelinePayload.builder()
+                        .cartId(cart.getId())
+                        .price(Price.builder().amount(totalAmount)
+                                .currencyCode(cartCheckoutRequest.getCurrencyCode())
+                                .scale(2)
+                                .build())
+                        .build())
+                .build();
+
+        producer.sendMessage(new Gson().toJson(timeline));
+
+        invoiceService.createInvoice(cart.getTeamName(), invoice);
     }
 }
 

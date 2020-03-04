@@ -1,9 +1,20 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://mongodb_batman/cart
+      uri: mongodb://localhost/cart
       database: cart_batman
       host: localhost
       port: 27017
   datasource:
     driverClassName: MongoDB
+  kafka:
+    producer:
+      bootstrap-servers: 18.210.232.248:9092,52.202.175.72:9092,18.204.118.23:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      bootstrap-servers: 18.210.232.248:9092,52.202.175.72:9092,18.204.118.23:9092
+      group-id: group_id
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer

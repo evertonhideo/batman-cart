@@ -30,28 +30,28 @@ public class CartController {
 
     @PatchMapping("/{id}/items")
     @ResponseBody
-    public ResponseEntity<?> addItem(@PathVariable Long id, @Valid @RequestBody CartItemRequest cartItemRequest) throws Exception {
+    public ResponseEntity<?> addItem(@PathVariable String id, @Valid @RequestBody CartItemRequest cartItemRequest) throws Exception {
         Cart updatedCart = service.addNewItem(id, cartItemRequest);
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<?> deleteCart(@PathVariable Long id) throws Exception {
+    public ResponseEntity<?> deleteCart(@PathVariable String id) throws Exception {
         Cart canceledCart = service.cancelCart(id);
         return ResponseEntity.ok(canceledCart);
     }
 
     @DeleteMapping("/{id}/items/{item_id}")
     @ResponseBody
-    public ResponseEntity<?> deleteCartItem(@PathVariable(value = "id") Long id,
-                                            @PathVariable(value = "item_id") Long itemId) throws Exception {
+    public ResponseEntity<?> deleteCartItem(@PathVariable(value = "id") String id,
+                                            @PathVariable(value = "item_id") String itemId) throws Exception {
         Cart updatedCart = service.removeCartItem(id, itemId);
         return ResponseEntity.ok(updatedCart);
     }
 
     @PostMapping("/{id}/checkout")
-    public ResponseEntity<?> checkout(@PathVariable Long id, @Valid @RequestBody CartCheckoutRequest cartCheckoutRequest, @RequestHeader("x-team-control") String teamName) throws Exception {
+    public ResponseEntity<?> checkout(@PathVariable String id, @Valid @RequestBody CartCheckoutRequest cartCheckoutRequest, @RequestHeader("x-team-control") String teamName) throws Exception {
         Cart cart = service.checkout(id, cartCheckoutRequest, teamName);
         return ResponseEntity.ok(cart);
     }

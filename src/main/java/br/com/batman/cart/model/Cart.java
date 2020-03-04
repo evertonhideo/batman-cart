@@ -17,7 +17,7 @@ import java.util.List;
 public class Cart {
 
     @Id
-    private long id;
+    private String id;
     @NotNull
     private  String customerId;
     @NotNull

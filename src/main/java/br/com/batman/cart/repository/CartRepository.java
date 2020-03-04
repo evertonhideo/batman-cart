@@ -3,5 +3,5 @@ package br.com.batman.cart.repository;
 import br.com.batman.cart.model.Cart;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface CartRepository extends MongoRepository<Cart, Long> {
+public interface CartRepository extends MongoRepository<Cart, String> {
 }
