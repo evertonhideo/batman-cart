@@ -155,7 +155,6 @@ public class CartService {
         invoice.setTotal(Price.builder()
                 .amount(totalAmount)
                 .currencyCode(cartCheckoutRequest.getCurrencyCode())
-                //TODO: Validar como pegar o scale correto para o pedido todo
                 .scale(2)
                 .build());
 
