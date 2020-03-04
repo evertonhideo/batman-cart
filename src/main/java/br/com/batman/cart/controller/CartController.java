@@ -5,7 +5,6 @@ import br.com.batman.cart.model.request.CartCheckoutRequest;
 import br.com.batman.cart.model.request.CartItemRequest;
 import br.com.batman.cart.model.request.CartRequest;
 import br.com.batman.cart.service.CartService;
-import jdk.javadoc.internal.doclets.toolkit.taglets.UserTaglet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +51,7 @@ public class CartController {
     }
 
     @PostMapping("/{id}/checkout")
-    public ResponseEntity<?> checkout(@PathVariable Long id, @Valid @RequestBody CartCheckoutRequest cartCheckoutRequest, @RequestHeader("x-team-control") String teamName) {
+    public ResponseEntity<?> checkout(@PathVariable Long id, @Valid @RequestBody CartCheckoutRequest cartCheckoutRequest, @RequestHeader("x-team-control") String teamName) throws Exception {
         Cart cart = service.checkout(id, cartCheckoutRequest, teamName);
         return ResponseEntity.ok(cart);
     }

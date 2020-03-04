@@ -3,7 +3,11 @@ package br.com.batman.cart.model;
 
 import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Price {
     private long amount;
     private int scale;

@@ -1,5 +1,6 @@
 package br.com.batman.cart.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,6 +24,7 @@ public class Cart {
     private Status status;
     @NotNull
     private List<CartItem> items;
+    @JsonIgnore
     private String teamName;
 
 }

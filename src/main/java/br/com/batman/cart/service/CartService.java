@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class CartService {
@@ -23,22 +24,19 @@ public class CartService {
     @Autowired
     CurrencyService currencyService;
 
+    @Autowired
+    InvoiceService invoiceService;
+
     public Cart createCart(CartRequest cartRequest) {
 
         Cart cart = Cart.builder()
+                .id(new Random().nextLong())
                 .customerId(cartRequest.getCustomerId())
                 .status(Status.PENDING)
                 .items(new ArrayList<CartItem>())
                 .build();
 
-        //Product product = productService.findProductBySky(cartRequest.getItem().getSku());
-        Product product = new Product();
-        product.setId("123");
-        product.setSku(cartRequest.getItem().getSku());
-        product.setPrice(new Price());
-        product.getPrice().setAmount(12);
-        product.getPrice().setCurrencyCode("USD");
-        product.getPrice().setScale(2);
+        Product product = productService.findProductBySky(cartRequest.getItem().getSku()).get(0);
 
         cart.getItems().add(CartItem.builder()
                 .id(product.getId())
@@ -46,6 +44,8 @@ public class CartService {
                 .quantity(cartRequest.getItem().getQuantity())
                 .currencyCode(product.getPrice().getCurrencyCode())
                 .scale(product.getPrice().getScale())
+                .imageUrl(product.getImageUrl())
+                .name(product.getName())
                 .build());
 
         return repository.save(cart);
@@ -59,11 +59,12 @@ public class CartService {
             throw new Exception("Status is not PENDING!");
         }
 
-        Product product = productService.findProductBySky(cartItemRequest.getSku());
+        Product product = productService.findProductBySky(cartItemRequest.getSku()).get(0);
+
         Boolean foundedProduct = false;
 
         for (CartItem it : cart.getItems()) {
-            if (it.getId() == product.getId()) {
+            if (it.getId().equals(product.getId())) {
                 it.setQuantity(it.getQuantity() + cartItemRequest.getQuantity());
                 foundedProduct = true;
                 break;
@@ -76,6 +77,8 @@ public class CartService {
                     .price(product.getPrice().getAmount())
                     .quantity(cartItemRequest.getQuantity())
                     .currencyCode(product.getPrice().getCurrencyCode())
+                    .name(product.getName())
+                    .imageUrl(product.getImageUrl())
                     .scale(product.getPrice().getScale())
                     .build());
         }
@@ -102,7 +105,7 @@ public class CartService {
             throw new Exception("Status is not PENDING!");
         }
 
-        cart.getItems().removeIf(it -> it.getId().equals(itemId));
+        cart.getItems().removeIf(it -> it.getId().equals(itemId.toString()));
         return repository.save(cart);
     }
 
@@ -122,13 +125,41 @@ public class CartService {
 
     private void processCart(Cart cart, CartCheckoutRequest cartCheckoutRequest) {
         List<Currency> currencies = currencyService.findCurrencies();
-        
+        long totalAmount = 0;
 
 
+        Invoice invoice = Invoice.builder()
+                .customerId(cart.getCustomerId())
+                .status(Status.DONE)
+                .id(cart.getId())
+                .items(new ArrayList<InvoiceItem>())
+                .build();
 
+        for (CartItem it : cart.getItems()) {
+            String currencyCode = it.getCurrencyCode() + "_TO_" + cartCheckoutRequest.getCurrencyCode();
+            Currency currency = currencies.stream().filter(i -> i.getCurrencyCode().equals(currencyCode)).findFirst().get();
+            long finalPrice = currency.getCurrencyValue() * it.getPrice() / 100;
+            totalAmount += (finalPrice * it.getQuantity());
 
+            invoice.getItems().add(
+                    InvoiceItem.builder()
+                            .currencyCode(cartCheckoutRequest.getCurrencyCode())
+                            .imageUrl(it.getImageUrl())
+                            .name(it.getName())
+                            .scale(it.getScale())
+                            .id(it.getId())
+                            .price(finalPrice)
+                            .build());
+        }
+
+        invoice.setTotal(Price.builder()
+                .amount(totalAmount)
+                .currencyCode(cartCheckoutRequest.getCurrencyCode())
+                //TODO: Validar como pegar o scale correto para o pedido todo
+                .scale(2)
+                .build());
+
+        invoiceService.createInvoice(invoice);
     }
-
-
 }
 

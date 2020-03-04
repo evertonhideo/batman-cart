@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@FeignClient(name = "productService", url = "https://bu6pphkfl9.execute-api.us-east-1.amazonaws.com/latest")
+import java.util.List;
+
+@FeignClient(name = "productService", url = "https://7qsoyqlued.execute-api.us-east-1.amazonaws.com/latest")
 public interface ProductService {
 
     @GetMapping(path = "/products", consumes = "application/json")
     @ResponseBody
-    Product findProductBySky(@RequestParam("sku") String sku);
+    List<Product> findProductBySky(@RequestParam("sku") String sku);
 }

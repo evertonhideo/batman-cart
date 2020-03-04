@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class InvoiceItem {
 
-    private long id;
+    private String id;
     private String name;
     private String imageUrl;
     private long price;

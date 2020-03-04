@@ -1,5 +1,6 @@
 package br.com.batman.cart.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -21,4 +22,8 @@ public class CartItem {
     private String currencyCode;
     @NotNull
     private long quantity;
+    @JsonIgnore
+    private String name;
+    @JsonIgnore
+    private String imageUrl;
 }
