@@ -1,4 +1,4 @@
-package br.com.batman.cart.service;
+package br.com.batman.cart.producer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;

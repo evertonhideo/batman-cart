@@ -13,6 +13,8 @@ public class InvoiceItem {
     private String name;
     private String imageUrl;
     private long price;
+    private long quantity;
     private int scale;
     private String currencyCode;
+
 }

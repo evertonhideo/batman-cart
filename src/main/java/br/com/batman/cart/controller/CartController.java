@@ -5,6 +5,7 @@ import br.com.batman.cart.model.request.CartCheckoutRequest;
 import br.com.batman.cart.model.request.CartItemRequest;
 import br.com.batman.cart.model.request.CartRequest;
 import br.com.batman.cart.service.CartService;
+import br.com.batman.cart.service.CheckoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,29 +17,29 @@ import javax.validation.Valid;
 public class CartController {
 
     @Autowired
-    CartService service;
+    CartService cartService;
 
-    //@Autowired
-    //private ModelMapper modelMapper;
+    @Autowired
+    CheckoutService checkoutService;
 
     @PostMapping
     @ResponseBody
     public ResponseEntity<?> createCart(@Valid @RequestBody CartRequest cartRequest) {
-        Cart createdCart = service.createCart(cartRequest);
+        Cart createdCart = cartService.createCart(cartRequest);
         return ResponseEntity.ok(createdCart);
     }
 
     @PatchMapping("/{id}/items")
     @ResponseBody
     public ResponseEntity<?> addItem(@PathVariable String id, @Valid @RequestBody CartItemRequest cartItemRequest) throws Exception {
-        Cart updatedCart = service.addNewItem(id, cartItemRequest);
+        Cart updatedCart = cartService.addNewItem(id, cartItemRequest);
         return ResponseEntity.ok(updatedCart);
     }
 
     @DeleteMapping("/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteCart(@PathVariable String id) throws Exception {
-        Cart canceledCart = service.cancelCart(id);
+        Cart canceledCart = cartService.cancelCart(id);
         return ResponseEntity.ok(canceledCart);
     }
 
@@ -46,14 +47,13 @@ public class CartController {
     @ResponseBody
     public ResponseEntity<?> deleteCartItem(@PathVariable(value = "id") String id,
                                             @PathVariable(value = "item_id") String itemId) throws Exception {
-        Cart updatedCart = service.removeCartItem(id, itemId);
+        Cart updatedCart = cartService.removeCartItem(id, itemId);
         return ResponseEntity.ok(updatedCart);
     }
 
     @PostMapping("/{id}/checkout")
     public ResponseEntity<?> checkout(@PathVariable String id, @Valid @RequestBody CartCheckoutRequest cartCheckoutRequest, @RequestHeader("x-team-control") String teamName) throws Exception {
-        Cart cart = service.checkout(id, cartCheckoutRequest, teamName);
+        Cart cart = checkoutService.checkout(id, cartCheckoutRequest, teamName);
         return ResponseEntity.ok(cart);
     }
-
 }

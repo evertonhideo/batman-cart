@@ -1,7 +1,9 @@
 spring:
+  application:
+    name: microservice-cart
   data:
     mongodb:
-      uri: mongodb://localhost/cart
+      uri: mongodb://mongodb_batman/cart_batman
       database: cart_batman
       host: localhost
       port: 27017
@@ -18,3 +20,33 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+server:
+  port: 9091
+
+logging:
+  level:
+    .: error
+    org:
+      springframework.data: debug
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoint:
+    metrics:
+      enabled: false
+    prometheus:
+      enabled: true
+
+opentracing:
+  jaeger:
+    udp-sender:
+      host: jaeger
+      port: 5775

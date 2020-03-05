@@ -1,37 +1,31 @@
 package br.com.batman.cart.service;
 
-import br.com.batman.cart.model.*;
-import br.com.batman.cart.model.request.CartCheckoutRequest;
+import br.com.batman.cart.client.AnalyticsClient;
+import br.com.batman.cart.client.ProductClient;
+import br.com.batman.cart.model.Cart;
+import br.com.batman.cart.model.CartItem;
+import br.com.batman.cart.model.Product;
+import br.com.batman.cart.model.Status;
 import br.com.batman.cart.model.request.CartItemRequest;
 import br.com.batman.cart.model.request.CartRequest;
 import br.com.batman.cart.repository.CartRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
 public class CartService {
 
     @Autowired
-    ProductService productService;
+    ProductClient productClient;
 
     @Autowired
     CartRepository repository;
 
     @Autowired
-    CurrencyService currencyService;
-
-    @Autowired
-    InvoiceService invoiceService;
-
-    @Autowired
-    TimelineProducer producer;
+    AnalyticsClient analyticsClient;
 
     public Cart createCart(CartRequest cartRequest) {
 
@@ -42,7 +36,7 @@ public class CartService {
                 .items(new ArrayList<CartItem>())
                 .build();
 
-        Product product = productService.findProductBySky(cartRequest.getItem().getSku()).get(0);
+        Product product = productClient.findProductBySky(cartRequest.getItem().getSku()).get(0);
 
         cart.getItems().add(CartItem.builder()
                 .id(product.getId())
@@ -53,6 +47,8 @@ public class CartService {
                 .imageUrl(product.getImageUrl())
                 .name(product.getName())
                 .build());
+
+        analyticsClient.postEvent("create_cart", cart);
 
         return repository.save(cart);
     }
@@ -65,7 +61,7 @@ public class CartService {
             throw new Exception("Status is not PENDING!");
         }
 
-        Product product = productService.findProductBySky(cartItemRequest.getSku()).get(0);
+        Product product = productClient.findProductBySky(cartItemRequest.getSku()).get(0);
 
         Boolean foundedProduct = false;
 
@@ -89,6 +85,8 @@ public class CartService {
                     .build());
         }
 
+        analyticsClient.postEvent("add_product", cart);
+
         return repository.save(cart);
     }
 
@@ -101,6 +99,9 @@ public class CartService {
         }
 
         cart.setStatus(Status.CANCEL);
+
+        analyticsClient.postEvent("cancel_cart", cart);
+
         return repository.save(cart);
     }
 
@@ -112,72 +113,11 @@ public class CartService {
         }
 
         cart.getItems().removeIf(it -> it.getId().equals(itemId));
+
+        analyticsClient.postEvent("remove_item", cart);
+
         return repository.save(cart);
     }
 
-    public Cart checkout(String id, CartCheckoutRequest cartCheckoutRequest, String teamName) throws Exception {
-        Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
-
-        if (cart.getStatus() != Status.PENDING) {
-            throw new Exception("Status is not PENDING!");
-        }
-
-        cart.setTeamName(teamName);
-
-        processCart(cart, cartCheckoutRequest);
-
-        return cart;
-    }
-
-    private void processCart(Cart cart, CartCheckoutRequest cartCheckoutRequest) {
-        List<Currency> currencies = currencyService.findCurrencies();
-        long totalAmount = 0;
-
-
-        Invoice invoice = Invoice.builder()
-                .customerId(cart.getCustomerId())
-                .status(Status.DONE)
-                .id(cart.getId())
-                .items(new ArrayList<InvoiceItem>())
-                .build();
-
-        for (CartItem it : cart.getItems()) {
-            String currencyCode = it.getCurrencyCode() + "_TO_" + cartCheckoutRequest.getCurrencyCode();
-            Currency currency = currencies.stream().filter(i -> i.getCurrencyCode().equals(currencyCode)).findFirst().get();
-            long finalPrice = currency.getCurrencyValue() * it.getPrice() / 100;
-            totalAmount += (finalPrice * it.getQuantity());
-
-            invoice.getItems().add(
-                    InvoiceItem.builder()
-                            .currencyCode(cartCheckoutRequest.getCurrencyCode())
-                            .imageUrl(it.getImageUrl())
-                            .name(it.getName())
-                            .scale(it.getScale())
-                            .id(it.getId())
-                            .price(finalPrice)
-                            .build());
-        }
-
-        invoice.setTotal(Price.builder()
-                .amount(totalAmount)
-                .currencyCode(cartCheckoutRequest.getCurrencyCode())
-                .scale(2)
-                .build());
-
-        Timeline timeline = Timeline.builder()
-                .headers(TimelineHeader.builder().teamControl(cart.getTeamName()).build())
-                .payload(TimelinePayload.builder()
-                        .cartId(cart.getId())
-                        .price(Price.builder().amount(totalAmount)
-                                .currencyCode(cartCheckoutRequest.getCurrencyCode())
-                                .scale(2)
-                                .build())
-                        .build())
-                .build();
-
-        producer.sendMessage(new Gson().toJson(timeline));
-
-        invoiceService.createInvoice(cart.getTeamName(), invoice);
-    }
 }
 
