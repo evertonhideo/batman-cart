@@ -21,6 +21,11 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+app:
+  client:
+  maxAttempts: 3
+  backoff: 2000
+
 server:
   port: 9091
 
