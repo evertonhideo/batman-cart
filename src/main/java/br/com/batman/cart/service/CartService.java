@@ -12,11 +12,16 @@ import br.com.batman.cart.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
 @Service
 public class CartService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CartService.class);
 
     @Autowired
     ProductClient productClient;
@@ -29,28 +34,36 @@ public class CartService {
 
     public Cart createCart(CartRequest cartRequest) {
 
-        Cart cart = Cart.builder()
-                .id(UUID.randomUUID().toString())
-                .customerId(cartRequest.getCustomerId())
-                .status(Status.PENDING)
-                .items(new ArrayList<CartItem>())
-                .build();
+        Cart cartResponse = null;
 
-        Product product = productClient.findProductBySky(cartRequest.getItem().getSku()).get(0);
+        try {
+            Cart cart = Cart.builder()
+                    .id(UUID.randomUUID().toString())
+                    .customerId(cartRequest.getCustomerId())
+                    .status(Status.PENDING)
+                    .items(new ArrayList<CartItem>())
+                    .build();
 
-        cart.getItems().add(CartItem.builder()
-                .id(product.getId())
-                .price(product.getPrice().getAmount())
-                .quantity(cartRequest.getItem().getQuantity())
-                .currencyCode(product.getPrice().getCurrencyCode())
-                .scale(product.getPrice().getScale())
-                .imageUrl(product.getImageUrl())
-                .name(product.getName())
-                .build());
+            Product product = productClient.findProductBySky(cartRequest.getItem().getSku()).get(0);
 
-        analyticsClient.postEvent("create_cart", cart);
+            cart.getItems().add(CartItem.builder()
+                    .id(product.getId())
+                    .price(product.getPrice().getAmount())
+                    .quantity(cartRequest.getItem().getQuantity())
+                    .currencyCode(product.getPrice().getCurrencyCode())
+                    .scale(product.getPrice().getScale())
+                    .imageUrl(product.getImageUrl())
+                    .name(product.getName())
+                    .build());
 
-        return repository.save(cart);
+            analyticsClient.postEvent("create_cart", cart);
+
+            cartResponse = repository.save(cart);
+        } catch (Exception ex) {
+            LOGGER.error("Erro ao criar carrinho!", ex);
+        }
+
+        return cartResponse;
     }
 
     public Cart addNewItem(String id, CartItemRequest cartItemRequest) throws Exception {
@@ -118,6 +131,5 @@ public class CartService {
 
         return repository.save(cart);
     }
-
 }
 

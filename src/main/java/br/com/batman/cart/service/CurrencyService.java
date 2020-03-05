@@ -3,6 +3,8 @@ package br.com.batman.cart.service;
 import br.com.batman.cart.client.CurrencyClient;
 import br.com.batman.cart.model.ConversionFactor;
 import br.com.batman.cart.model.Currency;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.List;
 
 @Service
 public class CurrencyService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CurrencyService.class);
 
     @Autowired
     CurrencyClient currencyClient;

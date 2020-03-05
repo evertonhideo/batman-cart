@@ -7,6 +7,8 @@ import br.com.batman.cart.model.request.CartCheckoutRequest;
 import br.com.batman.cart.producer.TimelineProducer;
 import br.com.batman.cart.repository.CartRepository;
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import java.util.ArrayList;
 
 @Service
 public class CheckoutService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CheckoutService.class);
 
     @Autowired
     InvoiceClient invoiceClient;
