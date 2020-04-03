@@ -4,6 +4,7 @@ spring:
   data:
     mongodb:
       uri: mongodb://mongodb_batman/cart_batman
+      #uri: mongodb://localhost/cart_batman
       database: cart_batman
       host: localhost
       port: 27017
@@ -11,20 +12,26 @@ spring:
     driverClassName: MongoDB
   kafka:
     producer:
-      bootstrap-servers: 18.210.232.248:9092,52.202.175.72:9092,18.204.118.23:9092
+      bootstrap-servers: 172.31.17.129:9092
+      #bootstrap-servers: localhost:9092
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
-      bootstrap-servers: 18.210.232.248:9092,52.202.175.72:9092,18.204.118.23:9092
+      bootstrap-servers: 172.31.17.129:9092
+      #bootstrap-servers: localhost:9092
       group-id: group_id
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
-app:
-  client:
-  maxAttempts: 3
-  backoff: 2000
+hackathon:
+  product:
+    url: https://0e3hqxxh35.execute-api.us-east-1.amazonaws.com/v1
+  external:
+    url: https://0e3hqxxh35.execute-api.us-east-1.amazonaws.com/v1
+  analytics:
+    url: https://0e3hqxxh35.execute-api.us-east-1.amazonaws.com/v1
+
 
 server:
   port: 9091
@@ -54,4 +61,5 @@ opentracing:
   jaeger:
     udp-sender:
       host: jaeger
+      #host: localhost
       port: 5775

@@ -2,10 +2,7 @@ package br.com.batman.cart.service;
 
 import br.com.batman.cart.client.AnalyticsClient;
 import br.com.batman.cart.client.ProductClient;
-import br.com.batman.cart.model.Cart;
-import br.com.batman.cart.model.CartItem;
-import br.com.batman.cart.model.Product;
-import br.com.batman.cart.model.Status;
+import br.com.batman.cart.model.*;
 import br.com.batman.cart.model.request.CartItemRequest;
 import br.com.batman.cart.model.request.CartRequest;
 import br.com.batman.cart.repository.CartRepository;
@@ -16,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -32,6 +30,9 @@ public class CartService {
     @Autowired
     AnalyticsClient analyticsClient;
 
+    @Autowired
+    CurrencyService currencyService;
+
     public Cart createCart(CartRequest cartRequest) {
 
         Cart cartResponse = null;
@@ -42,6 +43,7 @@ public class CartService {
                     .customerId(cartRequest.getCustomerId())
                     .status(Status.PENDING)
                     .items(new ArrayList<CartItem>())
+                    .total(new Price())
                     .build();
 
             Product product = productClient.findProductBySky(cartRequest.getItem().getSku()).get(0);
@@ -55,6 +57,8 @@ public class CartService {
                     .imageUrl(product.getImageUrl())
                     .name(product.getName())
                     .build());
+
+            cart.setTotal(calculateTotalPrice(cart.getItems()));
 
             analyticsClient.postEvent("create_cart", cart);
 
@@ -98,6 +102,8 @@ public class CartService {
                     .build());
         }
 
+        cart.setTotal(calculateTotalPrice(cart.getItems()));
+
         analyticsClient.postEvent("add_product", cart);
 
         return repository.save(cart);
@@ -127,9 +133,30 @@ public class CartService {
 
         cart.getItems().removeIf(it -> it.getId().equals(itemId));
 
+        cart.setTotal(calculateTotalPrice(cart.getItems()));
+
         analyticsClient.postEvent("remove_item", cart);
 
         return repository.save(cart);
     }
+
+    public Cart getCartById(String id) throws Exception {
+        Cart cart = repository.findById(id).orElseThrow(() -> new Exception("Cart not found!"));
+        return cart;
+    }
+
+    public Price calculateTotalPrice(List<CartItem> cartItems){
+        Price totalPrice = new Price();
+        double totalAmount = 0;
+        for (CartItem item : cartItems) {
+            double priceInUsd = currencyService.getPrice((double) item.getPrice(), item.getCurrencyCode(), "USD");
+            totalAmount += (priceInUsd * item.getQuantity());
+            totalPrice.setAmount((long) totalAmount);
+            totalPrice.setScale(item.getScale());
+            totalPrice.setCurrencyCode("USD");
+        }
+        return totalPrice;
+    }
+
 }
 

@@ -22,8 +22,8 @@ public class CartItem {
     private String currencyCode;
     @NotNull
     private long quantity;
-    @JsonIgnore
+    @NotNull
     private String name;
-    @JsonIgnore
+    @NotNull
     private String imageUrl;
 }

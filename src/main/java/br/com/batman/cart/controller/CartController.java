@@ -29,6 +29,13 @@ public class CartController {
         return ResponseEntity.ok(createdCart);
     }
 
+    @GetMapping("/{id}")
+    @ResponseBody
+    public  ResponseEntity<?> getCart(@PathVariable String id) throws  Exception {
+        Cart getCart = cartService.getCartById(id);
+        return ResponseEntity.ok(getCart);
+    }
+
     @PatchMapping("/{id}/items")
     @ResponseBody
     public ResponseEntity<?> addItem(@PathVariable String id, @Valid @RequestBody CartItemRequest cartItemRequest) throws Exception {

@@ -24,6 +24,8 @@ public class Cart {
     private Status status;
     @NotNull
     private List<CartItem> items;
+    @NotNull
+    private Price total;
     @JsonIgnore
     private String teamName;
 
